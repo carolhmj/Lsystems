@@ -14,9 +14,12 @@ CONFIG += c++11
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    lsystem.cpp
+    lsystem.cpp \
+    glwidget.cpp
 
 HEADERS  += mainwindow.h \
-    lsystem.h
+    lsystem.h \
+    glwidget.h
 
 FORMS    += mainwindow.ui
+INCLUDEPATH += $$PWD/../glm/glm

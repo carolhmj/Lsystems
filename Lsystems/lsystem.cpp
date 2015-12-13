@@ -1,5 +1,13 @@
 #include "lsystem.h"
 #include <random>
+#include <stdlib.h>
+#include <deque>
+#include "GL/gl.h"
+#include "glm/mat4x4.hpp"
+#include "glm/vec3.hpp"
+#include "glm/vec4.hpp"
+#include "glm/gtx/string_cast.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 string Lsystem::getAxiom() const
 {
@@ -22,11 +30,13 @@ Lsystem::Lsystem(string ruleDescriptorName)
     //Lê os parâmetros d e angle
     if (getline(ruleDescriptor, line)) {
         int pos = line.find(" ");
+        cout << "line d: " << line.substr(0,pos).c_str() << " angle line: " << line.substr(pos+1,line.size()-1).c_str() << endl;
         this->d = strtof(line.substr(0,pos).c_str(), NULL);
         this->angle = strtof(line.substr(pos+1,line.size()-1).c_str(), NULL);
     } else {
         return;
     }
+    cout << "d: " << d << " angle: " << angle << endl;
     //Lê posição inicial do x, posição inicial do y e ângulo inicial
     if (getline(ruleDescriptor, line)){
         int posA = line.find(" ");
@@ -85,5 +95,50 @@ void Lsystem::evolveState()
         cout << state << endl;
     }
 
+}
+
+void Lsystem::drawState()
+{
+    glm::mat4 mv;
+    deque<glm::mat4> mq;
+    mv = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f);
+    glColor3f(1,0,0);
+    glLineWidth(2);
+    for (const auto &c : state){
+        switch (c) {
+        case 'F':
+            drawLine(mv, d);
+            mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
+            break;
+        case 'f':
+            mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
+        case '+':
+            mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+        case '-':
+            mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+        case '[':
+            mq.push_front(mv);
+        case ']':
+            mv = mq.front();
+            mq.pop_front();
+        default:
+            break;
+        }
+    }
+}
+
+void Lsystem::drawLine(glm::mat4 m, float d)
+{
+    //cout << "drawing line " << d << "\n";
+    glm::vec4 v1(0,0,0,1);
+    glm::vec4 v2(0,d,0,0);
+    v1 = m * v1;
+    v2 = m * v2;
+    //cout << "v1: " << v1[0] << " " << v1[1] << " " << v1[2] << endl;
+    //cout << "v2: " << v2[0] << " " << v2[1] << " " << v2[2] << endl;
+    glBegin(GL_LINES);
+    glVertex3f(v1.x, v1.y, v1.z);
+    glVertex3f(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
+    glEnd();
 }
 
