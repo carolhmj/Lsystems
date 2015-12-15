@@ -6,7 +6,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 #include "glm/mat4x4.hpp"
+
+#define DEG2RAD(x) float(x * (M_PI / 180.0f))
 
 using namespace std;
 class Lsystem

@@ -100,26 +100,41 @@ void Lsystem::evolveState()
 void Lsystem::drawState()
 {
     glm::mat4 mv;
-    deque<glm::mat4> mq;
+    deque<glm::vec3> mq;
     mv = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f);
-    glColor3f(1,0,0);
+    glColor3f(0,0,0);
     glLineWidth(2);
+    //float[3] turtleState = initialTurtle;
+    glm::vec3 turtleState(initialTurtle[0], initialTurtle[1], initialTurtle[2]);
+    glm::vec4 drawState;
     for (const auto &c : state){
         switch (c) {
         case 'F':
-            drawLine(mv, d);
-            mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
+            glBegin(GL_LINES);
+            drawState = mv*glm::vec4(turtleState[0], turtleState[1], 0, 1);
+            glVertex2f(drawState[0], drawState[1]);
+            turtleState = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
+            drawState = mv*glm::vec4(turtleState[0], turtleState[1], 0, 1);
+            glVertex2f(drawState[0], drawState[1]);
+            glEnd();
+            //drawLine(mv, d);
+            //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
             break;
         case 'f':
-            mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
+            turtleState = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
+            //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
         case '+':
-            mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+            turtleState = turtleState + glm::vec3(0, 0, angle);
+            //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
         case '-':
-            mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+            turtleState = turtleState - glm::vec3(0, 0, angle);
+            //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
         case '[':
-            mq.push_front(mv);
+            cout << "pushing state: " << glm::to_string(turtleState) << endl;
+            mq.push_front(turtleState);
         case ']':
-            mv = mq.front();
+            turtleState = mq.front();
+            cout << "popped state: " << glm::to_string(turtleState) << endl;
             mq.pop_front();
         default:
             break;

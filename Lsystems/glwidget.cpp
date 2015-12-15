@@ -6,15 +6,17 @@ GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
     sys.setAxiom("AXA");
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 3; i++){
         cout << "i : " << i << endl;
         sys.evolveState();
     }
 }
 
 void GLWidget::initializeGL(){
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_LINE_SMOOTH);
+    glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(1,1,1,1);
+    //sys.drawState();
 }
 
 void GLWidget::resizeGL(int w, int h){
