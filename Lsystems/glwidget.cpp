@@ -5,8 +5,8 @@ using namespace std;
 GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
-    sys.setAxiom("AXA");
-    for (int i = 0; i < 3; i++){
+    sys.setAxiom("AXXA");
+    for (int i = 0; i < 10; i++){
         cout << "i : " << i << endl;
         sys.evolveState();
     }
@@ -16,7 +16,7 @@ void GLWidget::initializeGL(){
     glEnable(GL_LINE_SMOOTH);
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(1,1,1,1);
-    //sys.drawState();
+    sys.drawState();
 }
 
 void GLWidget::resizeGL(int w, int h){

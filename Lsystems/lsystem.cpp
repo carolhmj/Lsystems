@@ -108,6 +108,7 @@ void Lsystem::drawState()
     glm::vec3 turtleState(initialTurtle[0], initialTurtle[1], initialTurtle[2]);
     glm::vec4 drawState;
     for (const auto &c : state){
+        cout << "state: " << c << "\n";
         switch (c) {
         case 'F':
             glBegin(GL_LINES);
@@ -130,12 +131,14 @@ void Lsystem::drawState()
             turtleState = turtleState - glm::vec3(0, 0, angle);
             //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
         case '[':
-            cout << "pushing state: " << glm::to_string(turtleState) << endl;
+            //cout << "pushing state: " << glm::to_string(turtleState) << endl;
             mq.push_front(turtleState);
         case ']':
-            turtleState = mq.front();
-            cout << "popped state: " << glm::to_string(turtleState) << endl;
-            mq.pop_front();
+            if (!mq.empty()) {
+                turtleState = mq.front();
+                //cout << "popped state: " << glm::to_string(turtleState) << endl;
+                mq.pop_front();
+            }
         default:
             break;
         }
