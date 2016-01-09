@@ -101,14 +101,14 @@ void Lsystem::drawState()
 {
     glm::mat4 mv;
     deque<glm::vec3> mq;
-    mv = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f);
+    mv = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f) * glm::lookAt(glm::vec3(0.0,0.0,-1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,1.0,0.0));
     glColor3f(0,0,0);
     glLineWidth(2);
     //float[3] turtleState = initialTurtle;
     glm::vec3 turtleState(initialTurtle[0], initialTurtle[1], initialTurtle[2]);
     glm::vec4 drawState;
     for (const auto &c : state){
-        cout << "state: " << c << "\n";
+        //cout << "state: " << c << "\n";
         switch (c) {
         case 'F':
             glBegin(GL_LINES);

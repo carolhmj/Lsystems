@@ -15,11 +15,13 @@ CONFIG += c++11
 SOURCES += main.cpp\
         mainwindow.cpp \
     lsystem.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    trackball.cpp
 
 HEADERS  += mainwindow.h \
     lsystem.h \
-    glwidget.h
+    glwidget.h \
+    trackball.h
 
 FORMS    += mainwindow.ui
 INCLUDEPATH += $$PWD/../glm/glm
