@@ -2,6 +2,7 @@
 #include <random>
 #include <stdlib.h>
 #include <deque>
+#include <sstream>
 #include "GL/gl.h"
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
@@ -27,30 +28,36 @@ Lsystem::Lsystem(string ruleDescriptorName)
         return;
     }
     string line;
-    //Lê os parâmetros d e angle
+    //Lê os parâmetros d, angleZ e angleY
     if (getline(ruleDescriptor, line)) {
-        int pos = line.find(" ");
-        cout << "line d: " << line.substr(0,pos).c_str() << " angle line: " << line.substr(pos+1,line.size()-1).c_str() << endl;
-        this->d = strtof(line.substr(0,pos).c_str(), NULL);
-        this->angle = strtof(line.substr(pos+1,line.size()-1).c_str(), NULL);
+        int pos1 = line.find(" ");
+        this->d = strtof(line.substr(0,pos1).c_str(), NULL);
+        int pos2 = line.find(" ", pos1+1);
+        this->angleZ = strtof(line.substr(pos1+1, pos2).c_str(), NULL);
+        this->angleY = strtof(line.substr(pos2+1,line.size()-1).c_str(), NULL);
+        cout << "line dist: " << this->d << " angle Z: " << this->angleZ << " angle Y: " << this->angleY << endl;
     } else {
         return;
     }
-    cout << "d: " << d << " angle: " << angle << endl;
-    //Lê posição inicial do x, posição inicial do y e ângulo inicial
+    //Lê posição inicial do x, posição inicial do y, posição inicial do z, ângulo Z inicial e ângulo Y inicial
     if (getline(ruleDescriptor, line)){
         int posA = line.find(" ");
         int posB = line.find(" ", posA+1);
+        int posC = line.find(" ", posB+1);
+        int posD = line.find(" ", posC+1);
 
-        this->initialTurtle[0] = strtof(line.substr(0,posA).c_str(), NULL);
-        this->initialTurtle[1] = strtof(line.substr(posA+1, posB).c_str(), NULL);
-        this->initialTurtle[2] = strtof(line.substr(posB+1, line.size()-1).c_str(), NULL);
+        this->initialPosition[0] = strtof(line.substr(0,posA).c_str(), NULL);
+        this->initialPosition[1] = strtof(line.substr(posA+1, posB).c_str(), NULL);
+        this->initialPosition[2] = strtof(line.substr(posB+1, posC).c_str(), NULL);
+        this->initialAngles[0] = strtof(line.substr(posC+1, posD).c_str(), NULL);
+        this->initialAngles[1] = strtof(line.substr(posD+1, line.size()-1).c_str(), NULL);
     }
+
+    cout << "initial pos:" << turtleString(initialPosition, 3) << endl;
+    cout << "initial ang:" << turtleString(initialAngles, 2) << endl;
     //Lê regras do sistema
     while (getline(ruleDescriptor, line)){
         int pos = line.find("|");
-        //vector<string> *r = &(this->rules[line[pos-1]]);
-        //r->append(line.substr(pos+1,line.size()));
         this->rules[line[pos-1]].push_back(line.substr(pos+1,line.size()));
     }
 }
@@ -66,6 +73,18 @@ void Lsystem::printRules()
         }
         cout << endl;
     }
+}
+
+string Lsystem::turtleString(float turtle[], int i)
+{
+    ostringstream r;
+    r << "[ ";
+    for (int j = 0; j < i; j++){
+        r << turtle[j] << " ";
+    }
+    r << "]";
+    return r.str();
+
 }
 
 void Lsystem::evolveState()
@@ -92,52 +111,54 @@ void Lsystem::evolveState()
             }
         }
         state = out;
-        cout << state << endl;
+        //cout << state << endl;
     }
 
 }
 
-void Lsystem::drawState()
+void Lsystem::drawState(glm::mat4 mv)
 {
-    glm::mat4 mv;
-    deque<glm::vec3> mq;
-    mv = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f) * glm::lookAt(glm::vec3(0.0,0.0,-1.0), glm::vec3(0.0,0.0,0.0), glm::vec3(0.0,1.0,0.0));
+    deque<pair<glm::vec3, glm::vec2>> mq;
     glColor3f(0,0,0);
     glLineWidth(2);
-    //float[3] turtleState = initialTurtle;
-    glm::vec3 turtleState(initialTurtle[0], initialTurtle[1], initialTurtle[2]);
+
+    glm::vec3 turtlePosition(initialPosition[0], initialPosition[1], initialPosition[2]);
+    glm::vec2 turtleAngles(initialAngles[0], initialAngles[1]);
     glm::vec4 drawState;
     for (const auto &c : state){
         //cout << "state: " << c << "\n";
         switch (c) {
         case 'F':
             glBegin(GL_LINES);
-            drawState = mv*glm::vec4(turtleState[0], turtleState[1], 0, 1);
-            glVertex2f(drawState[0], drawState[1]);
-            turtleState = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
-            drawState = mv*glm::vec4(turtleState[0], turtleState[1], 0, 1);
-            glVertex2f(drawState[0], drawState[1]);
+            drawState = mv*glm::vec4(turtlePosition[0], turtlePosition[1], turtlePosition[2], 1);
+            glVertex3f(drawState[0], drawState[1], drawState[2]);
+            turtlePosition = turtlePosition + glm::vec3(d*cos(DEG2RAD(turtleAngles[0])), d*sin(DEG2RAD(turtleAngles[0])), 0);
+            turtlePosition = turtlePosition + glm::vec3(0,d*sin(DEG2RAD(turtleAngles[1])), d*cos(DEG2RAD(turtleAngles[1])));
+            drawState = mv*glm::vec4(turtlePosition[0], turtlePosition[1], turtlePosition[2], 1);
+            glVertex3f(drawState[0], drawState[1], drawState[2]);
             glEnd();
             //drawLine(mv, d);
             //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
             break;
         case 'f':
-            turtleState = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
+            //turtlePosition = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
             //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
         case '+':
-            turtleState = turtleState + glm::vec3(0, 0, angle);
+            turtleAngles = turtleAngles + glm::vec2(angleZ, angleY);
             //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
         case '-':
-            turtleState = turtleState - glm::vec3(0, 0, angle);
+            turtleAngles = turtleAngles - glm::vec2(angleZ, angleY);
             //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
         case '[':
             //cout << "pushing state: " << glm::to_string(turtleState) << endl;
-            mq.push_front(turtleState);
+            mq.push_front(make_pair(turtlePosition, turtleAngles));
         case ']':
             if (!mq.empty()) {
-                turtleState = mq.front();
+                auto turtles = mq.front();
                 //cout << "popped state: " << glm::to_string(turtleState) << endl;
                 mq.pop_front();
+                turtlePosition = turtles.first;
+                turtleAngles = turtles.second;
             }
         default:
             break;

@@ -1,0 +1,8 @@
+[d] [delta]
+[xinic] [yinic] [alphainic]
+[axiom inic]
+S|ABA
+A|XX
+B|TT
+T|F
+X|+

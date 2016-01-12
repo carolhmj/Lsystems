@@ -18,13 +18,14 @@ private:
     string axiom;
     string state;
     unordered_map<char, vector<string>> rules;
-    float d, angle, initialTurtle[3];
+    float d, angleZ, angleY, initialPosition[3], initialAngles[2];
 
 public:
     Lsystem(string ruleDescriptorName);
     void printRules();
+    string turtleString(float turtle[], int i);
     void evolveState();
-    void drawState();
+    void drawState(glm::mat4 mv);
     void drawLine(glm::mat4 m, float d);
     string getAxiom() const;
     void setAxiom(const string &value);

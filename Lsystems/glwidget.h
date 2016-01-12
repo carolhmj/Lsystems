@@ -10,6 +10,7 @@
 
 #include "lsystem.h"
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
 class GLWidget : public QGLWidget
@@ -33,16 +34,18 @@ private:
     float clipClose;
     float fovy;
 
-    glm::vec4 eyePosition = glm::vec4(0.0, 0.0, 1.0, 1.0);
-    glm::vec4 currentRotation = glm::mat4(1.0f);
-    int lastx, lasty;
+    glm::mat4 currentRotation = glm::mat4(1.0f);
+    int lastx = 0, lasty = 0;
+    glm::mat4 mvMatrix = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f);
 public:
     explicit GLWidget(QWidget *parent = 0);
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
     void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent* event);
 };
 
 #endif // GLWIDGET_H
