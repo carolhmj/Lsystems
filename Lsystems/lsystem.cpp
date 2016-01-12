@@ -22,6 +22,11 @@ void Lsystem::setAxiom(const string &value)
     axiom = value;
     state = axiom;
 }
+
+string Lsystem::getState() const
+{
+    return state;
+}
 Lsystem::Lsystem(string ruleDescriptorName)
 {
     ifstream ruleDescriptor;
@@ -41,11 +46,9 @@ Lsystem::Lsystem(string ruleDescriptorName)
     }
     //Lê axioma inicial
     if (getline(ruleDescriptor, line)){
-        this->axiom = line;
+        this->axiom = trim(line);
     }
 
-    cout << "initial pos:" << turtleString(initialPosition, 3) << endl;
-    cout << "initial ang:" << turtleString(initialAngles, 2) << endl;
     //Lê regras do sistema
     while (getline(ruleDescriptor, line)){
         int pos = line.find("|");
@@ -79,7 +82,7 @@ string Lsystem::turtleString(float turtle[], int i)
 }
 
 //Função de trim de http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
-std::string trim(const std::string &s)
+std::string Lsystem::trim(const std::string &s)
 {
    auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
    auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](int c){return std::isspace(c);}).base();
@@ -117,48 +120,81 @@ void Lsystem::evolveState()
 
 void Lsystem::drawState(glm::mat4 mv)
 {
-    deque<pair<glm::vec3, glm::vec2>> mq;
+    deque<vecCol> mq;
     glColor3f(0,0,0);
     glLineWidth(2);
 
-    glm::vec3 turtlePosition(initialPosition[0], initialPosition[1], initialPosition[2]);
-    glm::vec2 turtleAngles(initialAngles[0], initialAngles[1]);
+    //A turtle é formada por Heading-Up-Left-Origin
+    vecCol turtle;
+    turtle = {H, U, L, O};
+
     glm::vec4 drawState;
     for (const auto &c : state){
-        //cout << "state: " << c << "\n";
+        cout << "state: " << c << "\n";
+        flush(cout);
         switch (c) {
         case 'F':
+            drawState = turtle[3];
             glBegin(GL_LINES);
-            drawState = mv*glm::vec4(turtlePosition[0], turtlePosition[1], turtlePosition[2], 1);
+            //Desenha o ponto de origem
+            drawState = mv*turtle[3];
             glVertex3f(drawState[0], drawState[1], drawState[2]);
-            turtlePosition = turtlePosition + glm::vec3(d*cos(DEG2RAD(turtleAngles[0])), d*sin(DEG2RAD(turtleAngles[0])), 0);
-            turtlePosition = turtlePosition + glm::vec3(0,d*sin(DEG2RAD(turtleAngles[1])), d*cos(DEG2RAD(turtleAngles[1])));
-            drawState = mv*glm::vec4(turtlePosition[0], turtlePosition[1], turtlePosition[2], 1);
+
+            //Translada o ponto de origem em direção à Heading
+            turtle[3] = turtle[3] + d*turtle[0];
+
+            //Desenha o novo ponto de origem
+            drawState = mv*turtle[3];
             glVertex3f(drawState[0], drawState[1], drawState[2]);
             glEnd();
-            //drawLine(mv, d);
-            //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
             break;
         case 'f':
-            //turtlePosition = turtleState + glm::vec3(d*cos(DEG2RAD(turtleState[2])), d*sin(DEG2RAD(turtleState[2])), 0);
-            //mv = mv * glm::translate(glm::mat4(1.0f), glm::vec3(0,d,0));
+            //Translada o ponto de origem em direção à Heading
+            turtle[3] = turtle[3] + d*turtle[0];
+            break;
         case '+':
-            turtleAngles = turtleAngles + glm::vec2(angleZ, angleY);
-            //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+            //Rotação positiva em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[1])) * turtle[2];
+            break;
         case '-':
-            turtleAngles = turtleAngles - glm::vec2(angleZ, angleY);
-            //mv = mv * glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f,0.f,1.f));
+            //Rotação negativa em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[1])) * turtle[2];
+            break;
+        case '&':
+            //Rotação positiva em torno do eixo left
+            turtle[0] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[2])) * turtle[0];
+            turtle[1] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[2])) * turtle[1];
+            break;
+        case '^':
+            //Rotação negativa em torno do eixo left
+            turtle[0] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[2])) * turtle[0];
+            turtle[1] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[2])) * turtle[1];
+            break;
+        case '\\':
+            //Rotação positiva em torno do eixo heading
+            turtle[1] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[0])) * turtle[1];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[0])) * turtle[2];
+            break;
+        case '/':
+            //Rotação negativa em torno do eixo heading
+            turtle[1] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[0])) * turtle[1];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[0])) * turtle[2];
+            break;
+        case '!':
+            //Turnaround em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), 180.f, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), 180.f, glm::vec3(turtle[1])) * turtle[2];
         case '[':
-            //cout << "pushing state: " << glm::to_string(turtleState) << endl;
-            mq.push_front(make_pair(turtlePosition, turtleAngles));
+            mq.push_front(turtle);
+            break;
         case ']':
             if (!mq.empty()) {
-                auto turtles = mq.front();
-                //cout << "popped state: " << glm::to_string(turtleState) << endl;
+                turtle = mq.front();
                 mq.pop_front();
-                turtlePosition = turtles.first;
-                turtleAngles = turtles.second;
             }
+            break;
         default:
             break;
         }

@@ -8,12 +8,13 @@ using namespace std;
 GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
-    sys.setAxiom("X");
-    for (int i = 0; i < 30; i++){
-        //cout << "i : " << i << endl;
+    sys.printRules();
+    sys.setAxiom("A");
+    for (int i = 0; i < 2; i++){
+        cout << "i : " << i << endl;
         sys.evolveState();
     }
-
+    //cout << sys.getState() << endl;
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer.start(1);
 
@@ -50,7 +51,7 @@ void GLWidget::paintGL(){
    build_rotmatrix(m, curquat);
 
    glm::mat4 mm = glm::make_mat4(m[0]);
-   mvMatrix = glm::ortho(-100.f,100.f,-100.f, 100.f, -100.f, 100.f) * mm;
+   mvMatrix = glm::ortho(-10.f,10.f,-10.f, 10.f, -10.f, 10.f) * mm;
 
    sys.drawState(mvMatrix);
 }
@@ -62,7 +63,7 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
         lastx = event->x();
         lasty = event->y();
     }
-    cout << "lastx " << event->x() << " lasty " << event->y() << endl;
+    //cout << "lastx " << event->x() << " lasty " << event->y() << endl;
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event){
