@@ -1,6 +1,0 @@
-1 40
-0 0 0
-X|AXA
-A|BBCBB
-C|[-F-F-FF[-F]]
-B|+F+F+F

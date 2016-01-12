@@ -9,6 +9,8 @@
 #include "glm/vec4.hpp"
 #include "glm/gtx/string_cast.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include <cctype>
+#include <algorithm>
 
 string Lsystem::getAxiom() const
 {
@@ -28,29 +30,18 @@ Lsystem::Lsystem(string ruleDescriptorName)
         return;
     }
     string line;
-    //Lê os parâmetros d, angleZ e angleY
+    //Lê os parâmetros d e angle
     if (getline(ruleDescriptor, line)) {
-        int pos1 = line.find(" ");
-        this->d = strtof(line.substr(0,pos1).c_str(), NULL);
-        int pos2 = line.find(" ", pos1+1);
-        this->angleZ = strtof(line.substr(pos1+1, pos2).c_str(), NULL);
-        this->angleY = strtof(line.substr(pos2+1,line.size()-1).c_str(), NULL);
-        cout << "line dist: " << this->d << " angle Z: " << this->angleZ << " angle Y: " << this->angleY << endl;
+        int pos = line.find(" ");
+        this->d = strtof(line.substr(0, pos).c_str(), NULL);
+        this->angle = strtof(line.substr(pos+1, line.size()-1).c_str(), NULL);
+        cout << "line dist: " << this->d << " angle: " << this->angle << endl;
     } else {
         return;
     }
-    //Lê posição inicial do x, posição inicial do y, posição inicial do z, ângulo Z inicial e ângulo Y inicial
+    //Lê axioma inicial
     if (getline(ruleDescriptor, line)){
-        int posA = line.find(" ");
-        int posB = line.find(" ", posA+1);
-        int posC = line.find(" ", posB+1);
-        int posD = line.find(" ", posC+1);
-
-        this->initialPosition[0] = strtof(line.substr(0,posA).c_str(), NULL);
-        this->initialPosition[1] = strtof(line.substr(posA+1, posB).c_str(), NULL);
-        this->initialPosition[2] = strtof(line.substr(posB+1, posC).c_str(), NULL);
-        this->initialAngles[0] = strtof(line.substr(posC+1, posD).c_str(), NULL);
-        this->initialAngles[1] = strtof(line.substr(posD+1, line.size()-1).c_str(), NULL);
+        this->axiom = line;
     }
 
     cout << "initial pos:" << turtleString(initialPosition, 3) << endl;
@@ -85,6 +76,14 @@ string Lsystem::turtleString(float turtle[], int i)
     r << "]";
     return r.str();
 
+}
+
+//Função de trim de http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
+std::string trim(const std::string &s)
+{
+   auto wsfront=std::find_if_not(s.begin(),s.end(),[](int c){return std::isspace(c);});
+   auto wsback=std::find_if_not(s.rbegin(),s.rend(),[](int c){return std::isspace(c);}).base();
+   return (wsback<=wsfront ? std::string() : std::string(wsfront,wsback));
 }
 
 void Lsystem::evolveState()
