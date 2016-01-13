@@ -46,7 +46,7 @@ Lsystem::Lsystem(string ruleDescriptorName)
     }
     //Lê axioma inicial
     if (getline(ruleDescriptor, line)){
-        this->axiom = trim(line);
+        setAxiom(trim(line));
     }
 
     //Lê regras do sistema
