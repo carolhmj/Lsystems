@@ -50,7 +50,7 @@ void GLWidget::paintGL(){
    glm::mat4 mm = glm::make_mat4(m[0]);
    float w = zoom*this->width() + horizontalIncrease*this->width();
    float h = zoom*this->height() + verticalIncrease*this->height();
-   mvMatrix = glm::ortho(-w/2,w/2, -h/2, h/2, -10.f, 10.f) * mm;
+   mvMatrix = glm::ortho(-w/2,w/2, -h/2, h/2, -20000.f, 20000.f) * mm;
    sys.drawState(mvMatrix);
 }
 
@@ -86,7 +86,7 @@ void GLWidget::wheelEvent(QWheelEvent* event)
     float ds = scale*(event->delta()/120);
     this->zoom -= ds;
     zoom = zoom < scale ? scale : zoom;
-    zoom = zoom > 1.0 ? 1.0 : zoom;
+    //zoom = zoom > 1.0 ? 1.0 : zoom;
     cout << "zoom: " << zoom << endl;
     flush(cout);
     updateGL();
