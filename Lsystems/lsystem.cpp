@@ -130,8 +130,8 @@ void Lsystem::drawState(glm::mat4 mv)
 
     glm::vec4 drawState;
     for (const auto &c : state){
-        cout << "state: " << c << "\n";
-        flush(cout);
+//        cout << "state: " << c << "\n";
+//        flush(cout);
         switch (c) {
         case 'F':
             drawState = turtle[3];

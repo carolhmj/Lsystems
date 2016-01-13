@@ -9,8 +9,8 @@ GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(parent)
 {
     sys.printRules();
-    sys.setAxiom("A");
-    for (int i = 0; i < 2; i++){
+    sys.setAxiom("S");
+    for (int i = 0; i < 6; i++){
         cout << "i : " << i << endl;
         sys.evolveState();
     }
