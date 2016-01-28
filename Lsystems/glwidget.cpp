@@ -13,6 +13,8 @@ GLWidget::GLWidget(QWidget *parent) :
         cout << "i : " << i << endl;
         sys.evolveState();
     }
+    sys.generateModel();
+    sys.writeModel("vertices.txt", "arestas.txt");
     //cout << sys.getState() << endl;
     connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     timer.start(1);
@@ -52,6 +54,7 @@ void GLWidget::paintGL(){
    float h = zoom*this->height() + verticalIncrease*this->height();
    mvMatrix = glm::ortho(-w/2,w/2, -h/2, h/2, -20000.f, 20000.f) * mm;
    sys.drawState(mvMatrix);
+   //sys.drawState(glm::mat4());
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)

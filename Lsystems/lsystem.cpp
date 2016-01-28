@@ -11,6 +11,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <cctype>
 #include <algorithm>
+#include <utility>
 
 string Lsystem::getAxiom() const
 {
@@ -201,18 +202,120 @@ void Lsystem::drawState(glm::mat4 mv)
     }
 }
 
-void Lsystem::drawLine(glm::mat4 m, float d)
+/*
+ * Popula a lista de vértices e a lista de arestas com os valores apropriados
+ */
+void Lsystem::generateModel()
 {
-    //cout << "drawing line " << d << "\n";
-    glm::vec4 v1(0,0,0,1);
-    glm::vec4 v2(0,d,0,0);
-    v1 = m * v1;
-    v2 = m * v2;
-    //cout << "v1: " << v1[0] << " " << v1[1] << " " << v1[2] << endl;
-    //cout << "v2: " << v2[0] << " " << v2[1] << " " << v2[2] << endl;
-    glBegin(GL_LINES);
-    glVertex3f(v1.x, v1.y, v1.z);
-    glVertex3f(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
-    glEnd();
+    int currentVerticeNumber = 0; //Conta quantos vértices foram gerados até agora
+    int currentLineStart = 0; //Acompanha em qual vértice a linha atual começa
+    bool writeVertice = true; //Se o vértice já foi escrito ou não
+    verticesList.clear();
+    edgesList.clear();
+
+    deque<std::pair<vecCol, int>> mq; //Guarda o estado da turtle e o currentLineStart
+
+    //A turtle é formada por Heading-Up-Left-Origin
+    vecCol turtle;
+    turtle = {H, U, L, O};
+
+    for (const auto &c : state){
+//        cout << "state: " << c << "\n";
+//        flush(cout);
+        switch (c) {
+        case 'F':
+            if (writeVertice) {
+                verticesList.push_back(turtle[3]);
+            }
+            edgesList.push_back(currentLineStart);
+
+            writeVertice = false;
+            //Translada o ponto de origem em direção à Heading
+            turtle[3] = turtle[3] + d*turtle[0];
+            currentVerticeNumber++;
+
+            verticesList.push_back(turtle[3]);
+            edgesList.push_back(currentVerticeNumber);
+            currentLineStart = currentVerticeNumber;
+
+            break;
+        case 'f':
+            //Translada o ponto de origem em direção à Heading
+            turtle[3] = turtle[3] + d*turtle[0];
+            break;
+        case '+':
+            //Rotação positiva em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[1])) * turtle[2];
+            break;
+        case '-':
+            //Rotação negativa em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[1])) * turtle[2];
+            break;
+        case '&':
+            //Rotação positiva em torno do eixo left
+            turtle[0] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[2])) * turtle[0];
+            turtle[1] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[2])) * turtle[1];
+            break;
+        case '^':
+            //Rotação negativa em torno do eixo left
+            turtle[0] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[2])) * turtle[0];
+            turtle[1] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[2])) * turtle[1];
+            break;
+        case '\\':
+            //Rotação positiva em torno do eixo heading
+            turtle[1] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[0])) * turtle[1];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), angle, glm::vec3(turtle[0])) * turtle[2];
+            break;
+        case '/':
+            //Rotação negativa em torno do eixo heading
+            turtle[1] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[0])) * turtle[1];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), -angle, glm::vec3(turtle[0])) * turtle[2];
+            break;
+        case '!':
+            //Turnaround em torno do eixo up
+            turtle[0] = glm::rotate(glm::mat4(1.0f), 180.f, glm::vec3(turtle[1])) * turtle[0];
+            turtle[2] = glm::rotate(glm::mat4(1.0f), 180.f, glm::vec3(turtle[1])) * turtle[2];
+        case '[':
+            mq.push_front(std::make_pair(turtle, currentLineStart));
+            break;
+        case ']':
+            if (!mq.empty()) {
+                turtle = mq.front().first;
+                currentLineStart = mq.front().second;
+                mq.pop_front();
+            }
+            break;
+        default:
+            break;
+        }
+    }
 }
 
+void Lsystem::writeModel(const string &verticesFileName, const string &edgesFileName)
+{
+    ofstream verticesFile, edgesFile;
+
+    verticesFile.open(verticesFileName, ios::trunc);
+    edgesFile.open(edgesFileName, ios::trunc);
+    if (!verticesFile.is_open() || verticesList.empty() || edgesList.empty()){
+        return;
+    }
+    //Salva os vértices no arquivo
+    for (glm::vec4 &v : verticesList){
+        verticesFile << v.x << " " << v.y << " " << v.z << std::endl;
+    }
+    verticesFile.close();
+    //Salva as arestas no arquivo
+    int count = 0;
+    for (int &e : edgesList){
+        if (count == 0) {
+            edgesFile << e;
+        } else {
+            edgesFile << " " << e << std::endl;
+        }
+        count = (count + 1)%2;
+    }
+    edgesFile.close();
+}
