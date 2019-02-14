@@ -1,0 +1,8 @@
+[d] [delta]
+[axiom inic] 
+[regras: os símbolos que controlam a turtle são F {forward} ,+ {turn left},- {turn right}, & {pitch down}, ^ {pitch up}, \ {roll left}, / {roll right}, | {turn around}]
+S|ABA
+A|XX
+B|TT
+T|F
+X|+
